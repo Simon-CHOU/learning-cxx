@@ -15,21 +15,47 @@ class DynFibonacci {
 
 public:
     // TODO: 实现动态设置容量的构造器
-    DynFibonacci(int capacity): cache(new ?), cached(?) {}
+    DynFibonacci(int capacity) noexcept
+    : cache(new size_t[capacity]{0,1}), cached(2) {
+        std::cout<< "Constractor called" << std::endl;
+    }
 
     // TODO: 实现移动构造器
-    DynFibonacci(DynFibonacci &&) noexcept = delete;
+    DynFibonacci(DynFibonacci const &others) noexcept :
+    cache(new size_t[others.cached]),
+    cached(others.cached) {
+        std::cout<< "Copy constractor called" << std::endl;
+        std::memcpy(cache, others.cache, cached * sizeof(size_t));
+    }
+
+    DynFibonacci(DynFibonacci &&others) noexcept :
+        cache(std::exchange(others.cache, nullptr)),
+        cached(std::exchange(others.cached, 0)) {
+        std::cout<< "No constractor called" << std::endl;
+    }
 
     // TODO: 实现移动赋值
     // NOTICE: ⚠ 注意移动到自身问题 ⚠
-    DynFibonacci &operator=(DynFibonacci &&) noexcept = delete;
+    DynFibonacci &operator=(DynFibonacci &&others) noexcept { // 运算符重载
+        if (this != &others) {
+            delete[] this->cache;
+            cache = std::exchange(others.cache, nullptr);
+            cached = std::exchange(others.cached, 0);
+        } else {
+            std::cerr<< "Warning : self-assignment detected" << std::endl;
+        }
+        return *this;
+    }
 
     // TODO: 实现析构器，释放缓存空间
-    ~DynFibonacci();
+    ~DynFibonacci() noexcept{
+        std::cout<< "Destructor called" << std::endl;
+        delete[] cache;
+    };
 
     // TODO: 实现正确的缓存优化斐波那契计算
     size_t operator[](int i) {
-        for (; false; ++cached) {
+        for (; cached <= i; ++cached) {
             cache[cached] = cache[cached - 1] + cache[cached - 2];
         }
         return cache[i];
@@ -61,6 +87,14 @@ int main(int argc, char **argv) {
     fib0 = std::move(fib1);
     fib0 = std::move(fib0);
     ASSERT(fib0[10] == 55, "fibonacci(10) should be 55");
+
+    // // debuging
+    // std::cout<< "step0" << std::endl;
+    // DynFibonacci fib(12);
+    // std::cout<< "step1" << std::endl;
+    // std::cout<< "step2" << std::endl;
+    // DynFibonacci fib_2(std::move(fib));
+    // DynFibonacci fib_(1), fib__(2);
 
     return 0;
 }
