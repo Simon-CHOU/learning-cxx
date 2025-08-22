@@ -9,8 +9,8 @@ struct Fibonacci {
         if (i <= cached) {
             return cache[i];
         } else {
-            for (; false; ++cached) {
-                cache[cached] = cache[cached - 1] + cache[cached - 2];
+            for (; cached < i; ++cached) {
+                cache[cached + 1] = cache[cached] + cache[cached - 1];
             }
             return cache[i];
         }
